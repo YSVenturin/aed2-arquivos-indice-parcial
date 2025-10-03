@@ -1,12 +1,13 @@
 #ifndef ESTRUTURAS_H
 #define ESTRUTURAS_H
 
-#define TAM_MAX 50
+#define TAM_MAX 32
 
 typedef struct joia {
-    char id_joia[TAM_MAX]; 
+    char id_joia[TAM_MAX];
     char id_categoria[TAM_MAX];
     char nome_categoria[TAM_MAX];
+    char id_marca;
     float preco;
 }Joia;
 
@@ -17,7 +18,7 @@ typedef struct pedido {
 }Pedido;
 
 typedef struct joiapedido {
-    char id_pedido[TAM_MAX]; 
+    char id_pedido[TAM_MAX];
     char id_joia[TAM_MAX];
     int quant;
 }JoiaPedido;
