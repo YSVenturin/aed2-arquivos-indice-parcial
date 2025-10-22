@@ -1,7 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "consultas.h"
+#include "estruturas.h"
+#include "indice.h"
 
 void mostrar_pedidos(char *nome_arquivo) {
     FILE *f = fopen(nome_arquivo, "rb");
@@ -56,5 +59,71 @@ int busca_binaria_indice(Indice *i, int quant, char *id_busca) {
         pos = quant - 1;
 
     return pos;   // Não encontrado
+}
+
+Joia *busca_joia_por_id(Indice *indice, int quant, char *id_busca) {
+    FILE *f_joia = fopen("data/joias.bin", "rb");
+    if (f_joia == NULL) {
+        printf("Arquivo de dados nao existe.");
+        exit(1);
+    }
+    
+    int i;
+    int pos =  busca_binaria_indice(indice, quant, id_busca);
+
+    long offset = indice[pos].offset;
+    fseek(f_joia, offset, SEEK_SET);
+
+    Joia *j = (Joia *)malloc(sizeof(Joia));
+    if (!j) {
+        fclose(f_joia);
+        return NULL;
+    }
+
+    for (i = 0; i < TAM_BLOCO; i++) {
+        fread(j, sizeof(Joia), 1, f_joia);
+
+        if (strcmp(j->id_joia, id_busca) == 0) {
+            fclose(f_joia);
+            return j;
+        }
+    }
+
+    fclose(f_joia);
+
+    return NULL;
+}
+
+Pedido *busca_pedido_por_id(Indice *indice, int quant, char *id_busca) {
+    FILE *f_pedidos = fopen("data/pedidos.bin", "rb");
+    if (f_pedidos == NULL) {
+        printf("Arquivo de dados nao existe.");
+        exit(1);
+    }
+    
+    int i;
+    int pos =  busca_binaria_indice(indice, quant, id_busca);
+
+    long offset = indice[pos].offset;
+    fseek(f_pedidos, offset, SEEK_SET);
+
+    Pedido *p = (Pedido *)malloc(sizeof(Pedido));
+    if (!p) {
+        fclose(f_pedidos);
+        return NULL;
+    }
+
+    for (i = 0; i < TAM_BLOCO; i++) {
+        fread(p, sizeof(Pedido), 1, f_pedidos);
+
+        if (strcmp(p->id_pedido, id_busca) == 0) {
+            fclose(f_pedidos);
+            return p;
+        }
+    }
+
+    fclose(f_pedidos);
+
+    return NULL;
 }
 

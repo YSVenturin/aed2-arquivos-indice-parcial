@@ -21,7 +21,7 @@ Linha *ler_linhas(FILE *fptr) {
 
         // Inicializar todas as colunas com string sem nada para que colunas sem valores nao alterem o CSV
         for (j = 0; j < NUM_COLUNAS; j++) {
-            linha->colunas[j][0] = '\0';
+            linha->colunas[j][0] = ' ';
         }
 
         i = 0;
