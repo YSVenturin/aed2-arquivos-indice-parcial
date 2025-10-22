@@ -17,10 +17,4 @@ typedef struct pedido {
     char id_usuario[TAM_MAX];
 }Pedido;
 
-typedef struct joiapedido {
-    char id_pedido[TAM_MAX];
-    char id_joia[TAM_MAX];
-    int quant;
-}JoiaPedido;
-
 #endif

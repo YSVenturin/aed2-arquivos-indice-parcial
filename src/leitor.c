@@ -115,11 +115,9 @@ int verifica_joia_no_vetor(char *id_joia, int quant_joias, Joia *vetor_joias) {
 void gerar_arquivos_de_dados(Linha *linhas) {
     FILE *f_joias = fopen("data/joias.bin", "wb");
     FILE *f_pedidos = fopen("data/pedidos.bin", "wb");
-    FILE *f_joias_pedidos = fopen("data/joias_pedidos.bin", "wb");
 
     Linha *linha_atual = linhas;
 
-    JoiaPedido joiapedido;
     Pedido pedido;
     Joia nova_joia;
 
@@ -133,15 +131,8 @@ void gerar_arquivos_de_dados(Linha *linhas) {
     Joia *vetor_joias = (Joia *)malloc(TAM_VETOR_JOIAS * sizeof(Joia));
 
     while (linha_atual != NULL) {
-        memset(&joiapedido, 0, sizeof(JoiaPedido));
         memset(&pedido, 0, sizeof(Pedido));
         memset(&nova_joia, 0, sizeof(Joia));
-
-        // Escrita no arquivo joias_pedidos.bin
-        strcpy(joiapedido.id_joia, linha_atual->colunas[ID_PRODUTO]);
-        strcpy(joiapedido.id_pedido, linha_atual->colunas[ID_PEDIDO]);
-        joiapedido.quant = atoi(linha_atual->colunas[QUANTIDADE_SKU]);
-        fwrite(&joiapedido, sizeof(JoiaPedido), 1, f_joias_pedidos);
 
         // Escrita no arquivo pedidos.bin
         strcpy(id_pedido_atual, linha_atual->colunas[ID_PEDIDO]);
@@ -171,16 +162,14 @@ void gerar_arquivos_de_dados(Linha *linhas) {
     free(vetor_joias);
     fclose(f_joias);
     fclose(f_pedidos);
-    fclose(f_joias_pedidos);
 }
 
 int arquivos_de_dados_ja_existem() {
-    FILE *f1, *f2, *f3;
+    FILE *f1, *f2;
     f1 = fopen("data/joias.bin", "rb");
     f2 = fopen("data/pedidos.bin", "rb");
-    f3 = fopen("data/joias_pedidos.bin", "rb");
 
-    if (f1 == NULL || f2 == NULL || f3 == NULL)
+    if (f1 == NULL || f2 == NULL)
         return 0;
     
     return 1;
