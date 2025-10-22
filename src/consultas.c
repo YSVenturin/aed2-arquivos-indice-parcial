@@ -30,6 +30,67 @@ void mostrar_joias(char *nome_arquivo) {
     fclose(f);
 }
 
+void listar_pedidos_por_data(char *nome_arquivo, char *data_busca) {
+    FILE *f = fopen(nome_arquivo, "rb");
+    if (!f) {
+        printf("Erro ao abrir arquivo de pedidos.\n");
+        return;
+    }
+
+    Pedido p;
+    int encontrados = 0;
+
+    printf("\nPedidos realizados em %s:\n", data_busca);
+    printf("----------------------------------------\n");
+
+    while (fread(&p, sizeof(Pedido), 1, f) == 1) {
+        if (strncmp(p.data, data_busca, 10) == 0) {
+            printf("ID Pedido: %s | Usuario: %s | Data completa: %.19s\n", p.id_pedido, p.id_usuario, p.data);
+            encontrados++;
+        }
+    }
+
+    if (!encontrados)
+        printf("Nenhum pedido encontrado para a data %s.\n", data_busca);
+
+    fclose(f);
+}
+
+void resumo_preco_joias(char *nome_arquivo) {
+    FILE *f = fopen(nome_arquivo, "rb");
+    if (!f) {
+        printf("Erro ao abrir arquivo de joias.\n");
+        return;
+    }
+
+    Joia j;
+    int total = 0;
+    float soma = 0, min = 0, max = 0;
+
+    while (fread(&j, sizeof(Joia), 1, f) == 1) {
+        if (total == 0) {
+            min = max = j.preco;
+        } 
+        else  {
+            if (j.preco < min) 
+                min = j.preco;
+            if (j.preco > max) 
+                max = j.preco;
+        }
+        soma += j.preco;
+        total++;
+    }
+
+    if (total > 0) {
+        printf("Preco medio: %.2f | Preco Minimo: %.2f | Preco Maximo: %.2f\n", soma / total, min, max);
+    } 
+    else {
+        printf("Nenhuma joia encontrada.\n");
+    }
+
+    fclose(f);
+}
+
 int busca_binaria_indice(Indice *i, int quant, char *id_busca) {
     int inf = 0;     // limite inferior (o primeiro índice de vetor em C é zero)
     int sup = quant - 1; // limite superior (termina em um número a menos. 0 a 9 são 10 números)

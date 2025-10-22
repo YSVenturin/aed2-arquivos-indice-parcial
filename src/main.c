@@ -62,6 +62,8 @@ void menu_busca(HeaderIndice *header_indices) {
     printf("Escolha uma opcao:\n");
     printf("1 - Buscar Pedido por ID\n");
     printf("2 - Buscar Joia por ID\n");
+    printf("3 - Buscar Pedidos por DIA/MES/ANO\n");
+    printf("4 - Resumo/Estatisticas Precos Joias\n");
     printf("0 - Sair\n");
     printf("--> ");
     scanf("%d", &opcao);
@@ -105,6 +107,20 @@ void menu_busca(HeaderIndice *header_indices) {
             }
             
             break;
+        
+        case 3:
+            printf("Digite a data (formato YYYY-MM-DD): ");
+            char data_busca[11];
+            fgets(data_busca, sizeof(data_busca), stdin);
+            data_busca[strcspn(data_busca, "\n")] = '\0'; // remove '\n'
+
+            listar_pedidos_por_data("data/pedidos.bin", data_busca);
+
+            break;
+        
+        case 4:
+            resumo_preco_joias("data/joias.bin");
+            break;
 
         case 0:
             printf("\nSaindo.\n");
@@ -119,6 +135,8 @@ void menu_busca(HeaderIndice *header_indices) {
         printf("Escolha uma opcao:\n");
         printf("1 - Buscar Pedido por ID\n");
         printf("2 - Buscar Joia por ID\n");
+        printf("3 - Buscar Pedidos por DIA/MES/ANO\n");
+        printf("4 - Resumo/Estatisticas Precos Joias\n");
         printf("0 - Sair\n");
         printf("--> ");
         scanf("%d", &opcao);
