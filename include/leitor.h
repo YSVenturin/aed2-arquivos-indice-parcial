@@ -32,5 +32,8 @@ Linha *ler_linhas(FILE *fptr);
 void remover_novalinha(char *str);
 void desalocar_linhas(Linha *linha);
 void gerar_arquivos_de_dados(Linha *linhas);
+int verifica_joia_no_vetor(char *id_joia, int quant_joias, Joia *vetor_joias);
+void insere_joia_ordenado(Joia nova_joia, int *quant_joias, Joia **vetor_joias, int *TAM_VETOR_JOIAS);
+int arquivos_de_dados_ja_existem();
 
 #endif
