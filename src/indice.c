@@ -26,10 +26,8 @@ Indice *construir_indice_pedidos(HeaderIndice *hi) {
     Pedido p;
     int bloco;
     for (bloco = 0; bloco < num_reg_indice; bloco++) {
-        // Offset do primeiro registro do bloco
         indice_pedido[bloco].offset = ftell(entrada);
 
-        // Calcular índice do último registro do bloco
         long index_ultimo = (bloco + 1) * TAM_BLOCO - 1;
         if (index_ultimo >= total_registros){
             strcpy(indice_pedido[bloco].id, "");
@@ -155,5 +153,4 @@ void imprimir_indices(HeaderIndice *hi) {
     for (i = 0; i< hi->quant_indice_pedido; i++) {
         printf("ID P: %s | OFFSET: %ld\n", hi->pedidos[i].id, hi->pedidos[i].offset);
     }
-
 }

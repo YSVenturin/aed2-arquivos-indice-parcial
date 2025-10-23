@@ -19,7 +19,7 @@ Linha *ler_linhas(FILE *fptr) {
         Linha *linha = (Linha *)malloc(sizeof(Linha));
         linha->prox = NULL;
 
-        // Inicializar todas as colunas com string sem nada para que colunas sem valores nao alterem o CSV
+        // Inicializar todas as colunas com string sem nada para que colunas com um unico espaço nao alterem o CSV
         for (j = 0; j < NUM_COLUNAS; j++) {
             linha->colunas[j][0] = ' ';
         }
@@ -140,6 +140,7 @@ void gerar_arquivos_de_dados(Linha *linhas) {
             strcpy(pedido.id_pedido, linha_atual->colunas[ID_PEDIDO]);
             strcpy(pedido.id_usuario, linha_atual->colunas[ID_USUARIO]);
             strcpy(pedido.data, linha_atual->colunas[DATA_PEDIDO]);
+            pedido.ativo = '1';
             fwrite(&pedido, sizeof(Pedido), 1, f_pedidos);
         }
         strcpy(id_ultimo_pedido_lido, id_pedido_atual);
@@ -169,8 +170,15 @@ int arquivos_de_dados_ja_existem() {
     f1 = fopen("data/joias.bin", "rb");
     f2 = fopen("data/pedidos.bin", "rb");
 
-    if (f1 == NULL || f2 == NULL)
+    if (f1 == NULL || f2 == NULL){
+        fclose(f1);
+        fclose(f2);
         return 0;
+    }
+
+    fclose(f1);
+    fclose(f2);
+        
     
     return 1;
 }

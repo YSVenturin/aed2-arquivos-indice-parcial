@@ -177,7 +177,7 @@ Pedido *busca_pedido_por_id(Indice *indice, int quant, char *id_busca) {
     for (i = 0; i < TAM_BLOCO; i++) {
         fread(p, sizeof(Pedido), 1, f_pedidos);
 
-        if (strcmp(p->id_pedido, id_busca) == 0) {
+        if (p->ativo == '1' && strcmp(p->id_pedido, id_busca) == 0) {
             fclose(f_pedidos);
             return p;
         }

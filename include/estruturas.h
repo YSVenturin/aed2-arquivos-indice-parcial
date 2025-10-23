@@ -15,6 +15,7 @@ typedef struct pedido {
     char id_pedido[TAM_MAX]; 
     char data[TAM_MAX];
     char id_usuario[TAM_MAX];
+    char ativo;
 }Pedido;
 
 #endif

@@ -6,6 +6,7 @@
 #include "leitor.h"
 #include "indice.h"
 #include "consultas.h"
+#include "alteracao_arq.h"
 
 // ORGANIZACAO DO ARQUIVOS CSV INICIAL
 // Order-datetime,Order-ID,Purchased-product-ID,Quantity-of-SKU-in-the-order,Category-ID,Category-alias,Brand-ID,Price-in-USD,User-ID,Product-gender,color,metal,gem
@@ -30,33 +31,13 @@ int main() {
 
     menu_busca(&header_indices);
 
-    //imprimir_indices(&header_indices);
-    // mostrar_joias("data/joias.bin");
-    // mostrar_pedidos("data/pedidos.bin");
-
-    // Pedido *p = busca_pedido_por_id(header_indices.pedidos, header_indices.quant_indice_pedido, "2719022379232658075");
-    // Joia *j = busca_joia_por_id(header_indices.joias, header_indices.quant_indice_joia, "1515966222738746536");
-
-    // if (p == NULL) {
-    //     printf("Nao Encontrado.");
-    // }
-    // else {
-    //     printf("\n%s %s\n", p->id_pedido, p->data);
-    // }
-
-    // if (j == NULL) {
-    //     printf("Nao Encontrado.");
-    // }
-    // else {
-    //     printf("\n%s %.2f\n", j->id_joia, j->preco);
-    // }
-
     return 0;
 }
 
 void menu_busca(HeaderIndice *header_indices) {
     int opcao;
     char id_busca[TAM_MAX];
+    Pedido pedidonovo;
 
     printf("\n===== MENU DE BUSCA =====\n");
     printf("Escolha uma opcao:\n");
@@ -64,6 +45,9 @@ void menu_busca(HeaderIndice *header_indices) {
     printf("2 - Buscar Joia por ID\n");
     printf("3 - Buscar Pedidos por DIA/MES/ANO\n");
     printf("4 - Resumo/Estatisticas Precos Joias\n");
+    printf("5 - Inserir novo pedido\n");
+    printf("6 - Remover pedido\n");
+    printf("999 - funcoes secretas\n");
     printf("0 - Sair\n");
     printf("--> ");
     scanf("%d", &opcao);
@@ -121,9 +105,70 @@ void menu_busca(HeaderIndice *header_indices) {
         case 4:
             resumo_preco_joias("data/joias.bin");
             break;
+        
+        case 5:
+            printf("Digite o ID do pedido: ");
+            scanf("%s", pedidonovo.id_pedido);
+            printf("Digite a Data do Pedido (YYYY-MM-DD): ");
+            scanf("%s", pedidonovo.data);
+            printf("Digite o ID do usuário: ");
+            scanf("%s", pedidonovo.id_usuario);
+
+            inserir_pedido_ordenado("data/pedidos.bin", pedidonovo);
+
+            break;
+
+        case 6:
+            printf("Digite o ID do pedido a ser removido: ");
+            char id_busca[TAM_MAX];
+            scanf("%s", id_busca);
+
+            remover_pedido_logicamente("data/pedidos.bin", id_busca);
+
+            break;
+
+        case 999:
+            printf("1 - Imprimir indices\n");
+            printf("2 - Mostrar todos os pedidos\n");
+            printf("3 - Mostrar todas as joias\n");
+            printf("4 - Reorganizar arquivo de pedidos\n");
+            printf("5 - Reconstruir indice de pedidos\n");
+            printf("--> ");
+
+            int opcao_secreta;
+            scanf("%d", &opcao_secreta);
+            getchar();
+
+            switch (opcao_secreta) {
+
+                case 1:
+                    imprimir_indices(header_indices);
+                    break;
+                case 2:
+                    mostrar_pedidos("data/pedidos.bin");
+                    break;
+                case 3:
+                    mostrar_joias("data/joias.bin");
+                    break;
+                case 4:
+                    reorganizararq_pedidos("data/pedidos.bin");
+                    break;
+                case 5:
+                    header_indices->pedidos = construir_indice_pedidos(header_indices);
+                    break;
+                default:
+                    printf("Opcao invalida.\n");
+                    break;
+            }
+
+            break;
 
         case 0:
             printf("\nSaindo.\n");
+
+            reorganizararq_pedidos("data/pedidos.bin");
+            construir_indice_pedidos(header_indices);
+
             break;
 
         default:
@@ -137,6 +182,9 @@ void menu_busca(HeaderIndice *header_indices) {
         printf("2 - Buscar Joia por ID\n");
         printf("3 - Buscar Pedidos por DIA/MES/ANO\n");
         printf("4 - Resumo/Estatisticas Precos Joias\n");
+        printf("5 - Inserir novo pedido\n");
+        printf("6 - Remover pedido\n");
+        printf("999 - funcoes secretas\n");
         printf("0 - Sair\n");
         printf("--> ");
         scanf("%d", &opcao);
