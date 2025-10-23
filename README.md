@@ -1,7 +1,7 @@
 Para compilar:
 
 ```bash
-gcc -I./include src/*.c -pthread -lm -o program
+gcc -I./include src/*.c -o program
 ```
 
 Structs salvas nos arquivos binários:
@@ -40,4 +40,5 @@ typedef struct header {
     Indice *pedidos;
 }HeaderIndice;
 ```
+
 
