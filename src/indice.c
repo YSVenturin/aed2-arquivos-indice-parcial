@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <windows.h>
 
 #include "indice.h"
 #include "estruturas.h"
+#include "criptografia.h"
 
 Indice *construir_indice_pedidos(HeaderIndice *hi) {
     FILE *entrada = fopen("data/pedidos.bin", "rb");
@@ -36,8 +38,11 @@ Indice *construir_indice_pedidos(HeaderIndice *hi) {
 
         fseek(entrada, index_ultimo * sizeof(Pedido), SEEK_SET);
 
-        if (fread(&p, sizeof(Pedido), 1, entrada) == 1)
+        if (fread(&p, sizeof(Pedido), 1, entrada) == 1){
+            cifra_xor(&p);
             strcpy(indice_pedido[bloco].id, p.id_pedido);
+        }
+            
     }
 
     int i;
@@ -99,6 +104,68 @@ Indice *construir_indice_joias(HeaderIndice *hi) {
     return indice_joia;
 }
 
+IndiceHash **construir_indice_hash_pedidos() {
+    LARGE_INTEGER inicio, fim, freq;
+    QueryPerformanceFrequency(&freq);       // frequência do timer
+    QueryPerformanceCounter(&inicio);
+
+    FILE *entrada = fopen("data/pedidos.bin", "rb");
+
+    IndiceHash **indice = (IndiceHash**)calloc(TAM_VETOR_HASH, sizeof(IndiceHash*));
+
+    Pedido p;
+
+    long offset = ftell(entrada);
+
+    while (fread(&p, sizeof(Pedido), 1, entrada) == 1) {
+        cifra_xor(&p);
+
+        unsigned int valor_hash = calcula_hash(p.id_pedido);
+        int posicao = valor_hash % TAM_VETOR_HASH;
+
+        IndiceHash *i_novo = (IndiceHash*)malloc(sizeof(IndiceHash));
+        strcpy(i_novo->id, p.id_pedido);
+        i_novo->offset = offset;
+        i_novo->prox = NULL;
+
+        offset = ftell(entrada);
+
+        if (indice[posicao] == NULL) {
+            indice[posicao] = i_novo;
+            continue;
+        }
+
+        IndiceHash *aux = indice[posicao];
+        while (aux->prox != NULL) {
+            aux = aux->prox;
+        }
+
+        aux->prox = i_novo;
+    }
+
+    fclose(entrada);
+
+    QueryPerformanceCounter(&fim);
+
+    double tempo = (double)(fim.QuadPart - inicio.QuadPart) / freq.QuadPart;
+
+    printf("Tempo de execucao para criacao do indice dos pedidos por Hash: %f segundos\n", tempo);
+
+    return indice;
+}
+
+unsigned int calcula_hash(char str[TAM_MAX]) { // Funcao Hash usada foi a djb2
+    unsigned int hash = 5381;
+
+    int i = 0;
+    while (str[i] != '\0') {
+        hash = ((hash << 5) + hash) + str[i++];
+        hash += str[i++];
+    }
+
+    return hash;
+}
+
 HeaderIndice carregar_indices() {
     Indice *i_pedido;
     Indice *i_joia;
@@ -139,6 +206,7 @@ HeaderIndice carregar_indices() {
 
     hi.joias = i_joia;
     hi.pedidos = i_pedido;
+    hi.pedidos_hash = construir_indice_hash_pedidos();
 
     return hi;
 }

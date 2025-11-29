@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <windows.h>
 
 #include "estruturas.h"
 #include "leitor.h"
 #include "indice.h"
 #include "consultas.h"
 #include "alteracao_arq.h"
+#include "criptografia.h"
 
 // ORGANIZACAO DO ARQUIVOS CSV INICIAL
 // Order-datetime,Order-ID,Purchased-product-ID,Quantity-of-SKU-in-the-order,Category-ID,Category-alias,Brand-ID,Price-in-USD,User-ID,Product-gender,color,metal,gem
@@ -39,9 +41,12 @@ void menu_busca(HeaderIndice *header_indices) {
     char id_busca[TAM_MAX];
     Pedido pedidonovo;
 
+    LARGE_INTEGER inicio, fim, freq;
+
     printf("\n===== MENU DE BUSCA =====\n");
     printf("Escolha uma opcao:\n");
     printf("1 - Buscar Pedido por ID\n");
+    printf("11 - Buscar Pedido por ID usando Indice HASH\n");
     printf("2 - Buscar Joia por ID\n");
     printf("3 - Buscar Pedidos por DIA/MES/ANO\n");
     printf("4 - Resumo/Estatisticas Precos Joias\n");
@@ -60,7 +65,17 @@ void menu_busca(HeaderIndice *header_indices) {
             fgets(id_busca, sizeof(id_busca), stdin);
             remover_novalinha(id_busca);
 
+            QueryPerformanceFrequency(&freq);       // frequência do timer
+            QueryPerformanceCounter(&inicio);
+
             Pedido *p = busca_pedido_por_id(header_indices->pedidos, header_indices->quant_indice_pedido, id_busca);
+
+            QueryPerformanceCounter(&fim);
+
+            double tempo = (double)(fim.QuadPart - inicio.QuadPart) / freq.QuadPart;
+
+            printf("Tempo de execucao de busca por ID (sem Hash): %f segundos\n", tempo);
+
             if (p == NULL) {
                 printf("Pedido nao encontrado.\n");
             } 
@@ -71,6 +86,35 @@ void menu_busca(HeaderIndice *header_indices) {
                 free(p);
             }
             
+            break;
+        
+        case 11:
+            printf("Digite o ID do pedido: ");
+            fgets(id_busca, sizeof(id_busca), stdin);
+            remover_novalinha(id_busca);
+
+            QueryPerformanceFrequency(&freq);       // frequência do timer
+            QueryPerformanceCounter(&inicio);
+
+            p = busca_pedido_por_id_usando_hash(header_indices->pedidos_hash, id_busca);
+
+            QueryPerformanceCounter(&fim);
+
+            tempo = (double)(fim.QuadPart - inicio.QuadPart) / freq.QuadPart;
+
+            printf("Tempo de execucao de busca utilizando Hash: %f segundos\n", tempo);
+
+
+            if (p == NULL) {
+                printf("Pedido nao encontrado.\n");
+            }
+            else {
+                printf("ID: %s\n", p->id_pedido);
+                printf("Data: %s\n", p->data);
+                printf("ID Usuario: %s\n", p->id_usuario);
+                free(p);
+            }
+
             break;
 
         case 2:
@@ -113,8 +157,12 @@ void menu_busca(HeaderIndice *header_indices) {
             scanf("%s", pedidonovo.data);
             printf("Digite o ID do usuário: ");
             scanf("%s", pedidonovo.id_usuario);
+            
+            cifra_xor(&pedidonovo);
 
             inserir_pedido_ordenado("data/pedidos.bin", pedidonovo);
+
+            header_indices->pedidos_hash = construir_indice_hash_pedidos();
 
             break;
 
@@ -179,6 +227,7 @@ void menu_busca(HeaderIndice *header_indices) {
         printf("\n===== MENU DE BUSCA =====\n");
         printf("Escolha uma opcao:\n");
         printf("1 - Buscar Pedido por ID\n");
+        printf("11 - Buscar Pedido por ID usando Indice HASH\n");
         printf("2 - Buscar Joia por ID\n");
         printf("3 - Buscar Pedidos por DIA/MES/ANO\n");
         printf("4 - Resumo/Estatisticas Precos Joias\n");

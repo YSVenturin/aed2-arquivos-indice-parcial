@@ -4,6 +4,7 @@
 
 #include "leitor.h"
 #include "estruturas.h"
+#include "criptografia.h"
 
 Linha *ler_linhas(FILE *fptr) {
     int i, j;
@@ -141,6 +142,8 @@ void gerar_arquivos_de_dados(Linha *linhas) {
             strcpy(pedido.id_usuario, linha_atual->colunas[ID_USUARIO]);
             strcpy(pedido.data, linha_atual->colunas[DATA_PEDIDO]);
             pedido.ativo = '1';
+
+            cifra_xor(&pedido);
             fwrite(&pedido, sizeof(Pedido), 1, f_pedidos);
         }
         strcpy(id_ultimo_pedido_lido, id_pedido_atual);

@@ -11,5 +11,6 @@ Pedido *busca_pedido_por_id(Indice *indice, int quant, char *id_busca);
 Joia *busca_joia_por_id(Indice *indice, int quant, char *id_busca);
 void listar_pedidos_por_data(char *nome_arquivo, char *data_busca);
 void resumo_preco_joias(char *nome_arquivo);
+Pedido *busca_pedido_por_id_usando_hash(IndiceHash **i, char id_busca[TAM_MAX]);
 
 #endif

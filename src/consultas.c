@@ -5,6 +5,7 @@
 #include "consultas.h"
 #include "estruturas.h"
 #include "indice.h"
+#include "criptografia.h"
 
 void mostrar_pedidos(char *nome_arquivo) {
     FILE *f = fopen(nome_arquivo, "rb");
@@ -177,10 +178,49 @@ Pedido *busca_pedido_por_id(Indice *indice, int quant, char *id_busca) {
     for (i = 0; i < TAM_BLOCO; i++) {
         fread(p, sizeof(Pedido), 1, f_pedidos);
 
+        cifra_xor(p);
+
         if (p->ativo == '1' && strcmp(p->id_pedido, id_busca) == 0) {
             fclose(f_pedidos);
             return p;
         }
+    }
+
+    fclose(f_pedidos);
+
+    return NULL;
+}
+
+
+
+Pedido *busca_pedido_por_id_usando_hash(IndiceHash **i, char id_busca[TAM_MAX]) {
+    FILE *f_pedidos = fopen("data/pedidos.bin", "rb");
+
+    if (f_pedidos == NULL) {
+        printf("Arquivo de dados nao existe.");
+        exit(1);
+    }
+
+    int pos = calcula_hash(id_busca) % TAM_VETOR_HASH;
+    IndiceHash *aux = i[pos];
+    Pedido *p = (Pedido *)malloc(sizeof(Pedido));
+
+    while (aux != NULL) {
+        if (strcmp(aux->id, id_busca) == 0) {
+            long offset = aux->offset;
+
+            fseek(f_pedidos, offset, SEEK_SET);
+
+            fread(p, sizeof(Pedido), 1, f_pedidos);
+
+            cifra_xor(p);
+
+            fclose(f_pedidos);
+
+            return p;
+        }
+
+        aux = aux->prox;
     }
 
     fclose(f_pedidos);
