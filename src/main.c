@@ -8,8 +8,8 @@
 #include "indice.h"
 #include "consultas.h"
 #include "alteracao_arq.h"
+#include "compressao.h"
 #include "criptografia.h"
-
 // ORGANIZACAO DO ARQUIVOS CSV INICIAL
 // Order-datetime,Order-ID,Purchased-product-ID,Quantity-of-SKU-in-the-order,Category-ID,Category-alias,Brand-ID,Price-in-USD,User-ID,Product-gender,color,metal,gem
 
@@ -40,9 +40,7 @@ void menu_busca(HeaderIndice *header_indices) {
     int opcao;
     char id_busca[TAM_MAX];
     Pedido pedidonovo;
-
     LARGE_INTEGER inicio, fim, freq;
-
     printf("\n===== MENU DE BUSCA =====\n");
     printf("Escolha uma opcao:\n");
     printf("1 - Buscar Pedido por ID\n");
@@ -52,6 +50,8 @@ void menu_busca(HeaderIndice *header_indices) {
     printf("4 - Resumo/Estatisticas Precos Joias\n");
     printf("5 - Inserir novo pedido\n");
     printf("6 - Remover pedido\n");
+    printf("7 - Comprimir arquivo CSV\n");
+    printf("8 - Descomprimir arquivo CSV\n");
     printf("999 - funcoes secretas\n");
     printf("0 - Sair\n");
     printf("--> ");
@@ -122,7 +122,15 @@ void menu_busca(HeaderIndice *header_indices) {
             fgets(id_busca, sizeof(id_busca), stdin);
             remover_novalinha(id_busca);
 
-            Joia *j = busca_joia_por_id(header_indices->joias, header_indices->quant_indice_joia, id_busca);
+            printf("Escolha o metodo de busca:\n");
+            printf("1 - Indice Linear (Arquivo)\n");
+            printf("2 - Arvore B (Memoria)\n");
+            printf("--> ");
+            int metodo;
+            scanf("%d", &metodo);
+            getchar();
+
+            Joia *j = busca_joia_por_id(header_indices->joias, header_indices->quant_indice_joia, id_busca, header_indices->raiz_joias, metodo);
             if (j == NULL) {
                 printf("Joia nao encontrada.\n");
             } else {
@@ -157,11 +165,8 @@ void menu_busca(HeaderIndice *header_indices) {
             scanf("%s", pedidonovo.data);
             printf("Digite o ID do usuário: ");
             scanf("%s", pedidonovo.id_usuario);
-            
             cifra_xor(&pedidonovo);
-
             inserir_pedido_ordenado("data/pedidos.bin", pedidonovo);
-
             header_indices->pedidos_hash = construir_indice_hash_pedidos();
 
             break;
@@ -175,12 +180,23 @@ void menu_busca(HeaderIndice *header_indices) {
 
             break;
 
+        case 7:
+            printf("Comprimindo arquivo data/jewelry.csv para data/jewelry.huff...\n");
+            comprimir_arquivo("data/jewelry.csv", "data/jewelry.huff");
+            break;
+
+        case 8:
+            printf("Descomprimindo arquivo data/jewelry.huff para data/jewelry_decompressed.csv...\n");
+            descomprimir_arquivo("data/jewelry.huff", "data/jewelry_decompressed.csv");
+            break;
+
         case 999:
             printf("1 - Imprimir indices\n");
             printf("2 - Mostrar todos os pedidos\n");
             printf("3 - Mostrar todas as joias\n");
             printf("4 - Reorganizar arquivo de pedidos\n");
             printf("5 - Reconstruir indice de pedidos\n");
+            printf("6 - Imprimir Arvore B de Joias\n");
             printf("--> ");
 
             int opcao_secreta;
@@ -203,6 +219,9 @@ void menu_busca(HeaderIndice *header_indices) {
                     break;
                 case 5:
                     header_indices->pedidos = construir_indice_pedidos(header_indices);
+                    break;
+                case 6:
+                    imprimir_arvore_b(header_indices->raiz_joias, 0);
                     break;
                 default:
                     printf("Opcao invalida.\n");
@@ -233,6 +252,8 @@ void menu_busca(HeaderIndice *header_indices) {
         printf("4 - Resumo/Estatisticas Precos Joias\n");
         printf("5 - Inserir novo pedido\n");
         printf("6 - Remover pedido\n");
+        printf("7 - Comprimir arquivo CSV\n");
+        printf("8 - Descomprimir arquivo CSV\n");
         printf("999 - funcoes secretas\n");
         printf("0 - Sair\n");
         printf("--> ");

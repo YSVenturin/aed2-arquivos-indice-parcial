@@ -7,6 +7,7 @@
 #include "indice.h"
 #include "criptografia.h"
 
+
 void mostrar_pedidos(char *nome_arquivo) {
     FILE *f = fopen(nome_arquivo, "rb");
 
@@ -123,36 +124,68 @@ int busca_binaria_indice(Indice *i, int quant, char *id_busca) {
     return pos;   // Não encontrado
 }
 
-Joia *busca_joia_por_id(Indice *indice, int quant, char *id_busca) {
+Joia *busca_joia_por_id(Indice *indice, int quant, char *id_busca, NoB *raiz_b, int tipo_indice) {
     FILE *f_joia = fopen("data/joias.bin", "rb");
     if (f_joia == NULL) {
         printf("Arquivo de dados nao existe.");
         exit(1);
     }
     
-    int i;
-    int pos =  busca_binaria_indice(indice, quant, id_busca);
+    long offset = -1;
+    int usar_btree = 0;
 
-    long offset = indice[pos].offset;
-    fseek(f_joia, offset, SEEK_SET);
-
-    Joia *j = (Joia *)malloc(sizeof(Joia));
-    if (!j) {
-        fclose(f_joia);
-        return NULL;
-    }
-
-    for (i = 0; i < TAM_BLOCO; i++) {
-        fread(j, sizeof(Joia), 1, f_joia);
-
-        if (strcmp(j->id_joia, id_busca) == 0) {
-            fclose(f_joia);
-            return j;
+    // Tipo 2 = B-Tree, Tipo 0 = Smart (tenta B-Tree primeiro)
+    if ((tipo_indice == 2 || tipo_indice == 0) && raiz_b != NULL) {
+        offset = buscar_b(raiz_b, id_busca);
+        if (offset != -1) {
+            printf("[DEBUG] Encontrado na Arvore B! Offset: %ld\n", offset);
+            usar_btree = 1;
+        } else {
+            printf("[DEBUG] Nao encontrado na Arvore B.\n");
+        }
+    } 
+    
+    // Se não encontrou na árvore B e o tipo permite fallback ou é linear (Tipo 1)
+    if (offset == -1 && (tipo_indice == 1 || tipo_indice == 0)) {
+        printf("[DEBUG] Usando busca binaria no indice linear...\n");
+        int pos = busca_binaria_indice(indice, quant, id_busca);
+        if (pos < quant) {
+             offset = indice[pos].offset;
         }
     }
 
-    fclose(f_joia);
+    if (offset != -1) {
+        fseek(f_joia, offset, SEEK_SET);
+        Joia *j = (Joia *)malloc(sizeof(Joia));
+        if (!j) {
+            fclose(f_joia);
+            return NULL;
+        }
 
+        // Se veio da árvore B, o offset é exato do registro
+        if (usar_btree) {
+             if (fread(j, sizeof(Joia), 1, f_joia) == 1) {
+                 if (strcmp(j->id_joia, id_busca) == 0) {
+                     fclose(f_joia);
+                     return j;
+                 }
+             }
+        } else {
+            // Lógica antiga de bloco (Linear)
+            int i;
+            for (i = 0; i < TAM_BLOCO; i++) {
+                if (fread(j, sizeof(Joia), 1, f_joia) != 1) break;
+
+                if (strcmp(j->id_joia, id_busca) == 0) {
+                    fclose(f_joia);
+                    return j;
+                }
+            }
+        }
+        free(j);
+    }
+
+    fclose(f_joia);
     return NULL;
 }
 
@@ -177,9 +210,7 @@ Pedido *busca_pedido_por_id(Indice *indice, int quant, char *id_busca) {
 
     for (i = 0; i < TAM_BLOCO; i++) {
         fread(p, sizeof(Pedido), 1, f_pedidos);
-
         cifra_xor(p);
-
         if (p->ativo == '1' && strcmp(p->id_pedido, id_busca) == 0) {
             fclose(f_pedidos);
             return p;
@@ -190,7 +221,6 @@ Pedido *busca_pedido_por_id(Indice *indice, int quant, char *id_busca) {
 
     return NULL;
 }
-
 
 
 Pedido *busca_pedido_por_id_usando_hash(IndiceHash **i, char id_busca[TAM_MAX]) {
@@ -227,4 +257,3 @@ Pedido *busca_pedido_por_id_usando_hash(IndiceHash **i, char id_busca[TAM_MAX]) 
 
     return NULL;
 }
-
